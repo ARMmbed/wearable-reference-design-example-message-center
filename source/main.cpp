@@ -24,11 +24,8 @@
 #include "uif-ui-popup-alert-wrd/AlertView.h"
 
 #include "message-center/MessageCenter.h"
-#include "message-center-transport/MessageCenterSPIMaster.h"
 #include "mbed-block/BlockDynamic.h"
 #include "cborg/Cbor.h"
-
-#include "wrd-utilities/SharedModules.h"
 
 #include <string>
 
@@ -40,10 +37,12 @@
 #define VALUE_DISCONNECTION_PERIPHERAL  2
 #define VALUE_DISCONNECTION_CENTRAL     4
 
-#if YOTTA_CFG_HARDWARE_WEARABLE_REFERENCE_DESIGN_BLUETOOTH_LE_PRESENT
-#define BLE_NAME     YOTTA_CFG_HARDWARE_WEARABLE_REFERENCE_DESIGN_BLUETOOTH_LE_SPI_NAME
-#define BLE_CS       YOTTA_CFG_HARDWARE_WEARABLE_REFERENCE_DESIGN_BLUETOOTH_LE_SPI_CS
-#define BLE_NRDY     YOTTA_CFG_HARDWARE_WEARABLE_REFERENCE_DESIGN_BLUETOOTH_LE_PIN_NRDY
+#if YOTTA_CFG_HARDWARE_WRD_MESSAGE_CENTER_TRANSPORT_SIZE > 0
+#include "message-center-transport/MessageCenterSPIMaster.h"
+#include "wrd-utilities/SharedModules.h"
+#define BLE_NAME     YOTTA_CFG_HARDWARE_WRD_BLUETOOTH_LE_SPI_NAME
+#define BLE_CS       YOTTA_CFG_HARDWARE_WRD_BLUETOOTH_LE_SPI_CS
+#define BLE_NRDY     YOTTA_CFG_HARDWARE_WRD_BLUETOOTH_LE_PIN_NRDY
 // message center
 static MessageCenterSPIMaster transport(BLE_NAME, BLE_CS, BLE_NRDY);
 #endif
@@ -51,7 +50,11 @@ static MessageCenterSPIMaster transport(BLE_NAME, BLE_CS, BLE_NRDY);
 static uif::MatrixLCD lcd;
 static SharedPointer<UIFramework> uiFramework;
 
-static InterruptIn forwardButton(YOTTA_CFG_HARDWARE_WEARABLE_REFERENCE_DESIGN_BUTTON_PIN_FORWARD);
+#if defined(YOTTA_CFG_HARDWARE_WRD_BUTTON_BUTTON0_PIN)
+static InterruptIn forwardButton(YOTTA_CFG_HARDWARE_WRD_BUTTON_BUTTON0_PIN);
+#else
+#error WRD Button not defined
+#endif
 
 static SharedPointer<BlockStatic> sendBlock;
 static const uint32_t alertTimeOnScreen = 5000;
@@ -170,7 +173,7 @@ void buttonPressISR()
 void app_start(int, char *[])
 {
     /* message center */
-#if YOTTA_CFG_HARDWARE_WEARABLE_REFERENCE_DESIGN_BLUETOOTH_LE_PRESENT
+#if YOTTA_CFG_HARDWARE_WRD_MESSAGE_CENTER_TRANSPORT_SIZE > 0
     MessageCenter::addTransportTask(MessageCenter::RemoteHost, &transport);
 #endif
 
